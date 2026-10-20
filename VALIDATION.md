@@ -16,3 +16,15 @@ RF accuracy require the installed Windows dependencies and hardware.
 
 Source baseline: b655ccb91fc57e75395fec702495819852549487
 (Thomas-Wierzbicki/Intel_RTL_analyzer, feature/mouse-wheel-zoom).
+
+## Confirmed CI run
+
+Run https://github.com/Thomas-Wierzbicki/Intel_RTL_Analyzer_Next/actions/runs/39479955060
+passed all three jobs for commit 7ffe52bad7baa6a0b3942ad37c0997554444940a:
+- 7 core regression executables passed on Windows.
+- 7 core regression executables passed on Linux.
+- Qt GUI/moc/uic object compilation passed on Linux with the declaration-only IPP shim.
+
+A follow-up correction adds a two-hour simulator timing overflow regression and
+keeps marker clipping correct after window resizing. Its results are available
+in the subsequent Actions run.

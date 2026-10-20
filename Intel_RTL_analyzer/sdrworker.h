@@ -5,6 +5,7 @@
 #include <QtCore/QMutex>
 #include <QtCore/QString>
 #include <atomic>
+#include <cstdint>
 #include <vector>
 #include <ipps.h>
 

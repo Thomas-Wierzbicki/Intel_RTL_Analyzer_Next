@@ -5,6 +5,8 @@
 #include <limits>
 #include <vector>
 int main() {
+    assert(simulationDeadlineNs(0, 2400000) == 0);
+    assert(simulationDeadlineNs(2400000LL * 7200, 2400000) == 7200000000000LL);
     assert(std::abs(normalizedToneDb(2048.0*2048, 2048)) < 1e-9);
     assert(std::abs(normalizedToneDb(1024.0*1024, 2048) + 6.020599913) < 1e-6);
     assert(normalizedToneDb(0, 2048) == -200);

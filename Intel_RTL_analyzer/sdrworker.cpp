@@ -205,7 +205,7 @@ void SDRWorker::run()
             }
             processFftBlock();
             simulatedSamples += m_fftSize;
-            const qint64 remainingNs = simulatedSamples * 1000000000LL / m_sampleRate -
+            const qint64 remainingNs = simulationDeadlineNs(simulatedSamples, m_sampleRate) -
                                        simulationClock.nsecsElapsed();
             if (remainingNs > 0) usleep(static_cast<unsigned long>(remainingNs / 1000));
         } else if (hardware) {

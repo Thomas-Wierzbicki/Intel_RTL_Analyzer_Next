@@ -30,6 +30,7 @@ public:
         setAttribute(Qt::WA_NoSystemBackground);
         hide();
     }
+    void setArea(const QRectF& area) { m_area = area; }
     void clearCross() { m_hasCross = false; setVisible(!m_markers.isEmpty()); update(); }
     void setMarkers(const QVector<QPointF>& points) {
         m_markers = points; setVisible(m_hasCross || !points.isEmpty()); update();
@@ -215,6 +216,9 @@ Intel_RTL_analyzer::Intel_RTL_analyzer(QWidget* parent)
     connect(dynamicRange, &QDoubleSpinBox::valueChanged, this, setScale);
     connect(offset, &QDoubleSpinBox::valueChanged, this, setScale);
     m_markerReadout = new QLabel("Marker: A/B im Diagramm setzen", this);
+    m_markerReadout->setWordWrap(true);
+    m_markerReadout->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
+    m_markerReadout->setFixedHeight(2 * m_markerReadout->fontMetrics().lineSpacing() + 4);
     mainLayout->addWidget(m_markerReadout);
     m_deviceStatus = new QLabel(m_worker->statusText(), this);
     mainLayout->addWidget(m_deviceStatus);
@@ -485,5 +489,6 @@ void Intel_RTL_analyzer::refreshMarkers()
             .arg((m_markerFrequency[1] - m_markerFrequency[0]) * 1000, 0, 'f', 3)
             .arg(m_markerLevel[1] - m_markerLevel[0], 0, 'f', 2);
     m_markerReadout->setText(text.isEmpty() ? "Marker: A/B auswaehlen und Messpunkt anklicken" : text);
+    m_cursorOverlay->setArea(m_plot->axisRect()->rect());
     m_cursorOverlay->setMarkers(points);
 }
