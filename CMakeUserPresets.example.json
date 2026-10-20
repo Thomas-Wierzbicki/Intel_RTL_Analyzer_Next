@@ -1,0 +1,20 @@
+{
+  "version": 3,
+  "configurePresets": [
+    {
+      "name": "windows-release-local",
+      "displayName": "Windows x64 Release (lokale Qt- und IPP-Pfade)",
+      "inherits": "windows-release",
+      "cacheVariables": {
+        "CMAKE_PREFIX_PATH": "C:/Qt/6.12.0/msvc2022_64",
+        "IPP_ROOT": "C:/Program Files (x86)/Intel/oneAPI/2026.1"
+      }
+    }
+  ],
+  "buildPresets": [
+    { "name": "windows-release-local", "configurePreset": "windows-release-local" }
+  ],
+  "testPresets": [
+    { "name": "windows-release-local", "configurePreset": "windows-release-local", "output": { "outputOnFailure": true } }
+  ]
+}

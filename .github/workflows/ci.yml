@@ -1,0 +1,28 @@
+name: Analyzer checks
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  core-tests:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure core tests
+        run: cmake -S . -B build -DBUILD_ANALYZER=OFF -DCMAKE_BUILD_TYPE=Release
+      - name: Build
+        run: cmake --build build --config Release --parallel 2
+      - name: Test
+        run: ctest --test-dir build -C Release --output-on-failure
+  qt-compile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Qt
+        run: sudo apt-get update && sudo apt-get install -y qt6-base-dev
+      - name: Configure declaration-only IPP compile check
+        run: cmake -S . -B build -DBUILD_QT_CHECK=ON -DBUILD_TESTING=OFF -DCMAKE_BUILD_TYPE=Release
+      - name: Compile GUI and Qt moc/uic
+        run: cmake --build build --parallel 2
