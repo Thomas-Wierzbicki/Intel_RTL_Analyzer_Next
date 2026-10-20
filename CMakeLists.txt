@@ -41,10 +41,42 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
 find_package(Qt6 6.2 REQUIRED COMPONENTS Core Gui Widgets)
-set(IPP_ROOT "$ENV{IPPROOT}" CACHE PATH "Intel IPP root: contains include[/ipp] and lib")
-find_path(IPP_INCLUDE_DIR ipps.h HINTS "${IPP_ROOT}" PATH_SUFFIXES include/ipp include REQUIRED)
-find_library(IPP_SIGNAL_LIBRARY NAMES ipps HINTS "${IPP_ROOT}" PATH_SUFFIXES lib lib/intel64 REQUIRED)
-find_library(IPP_CORE_LIBRARY NAMES ippcore HINTS "${IPP_ROOT}" PATH_SUFFIXES lib lib/intel64 REQUIRED)
+# Prefer configured roots, then the known Windows oneAPI installations.
+set(IPP_ROOT "$ENV{IPPROOT}" CACHE PATH "Intel IPP installation directory")
+set(IPP_SEARCH_ROOTS "${IPP_ROOT}" "$ENV{IPPROOT}")
+if(WIN32)
+    list(APPEND IPP_SEARCH_ROOTS
+        "C:/Program Files (x86)/Intel/oneAPI/2026.1"
+        "C:/Program Files (x86)/Intel/oneAPI/ipp/2026.0")
+endif()
+
+# Remove stale cached paths before searching.
+if(DEFINED IPP_INCLUDE_DIR AND NOT EXISTS "${IPP_INCLUDE_DIR}/ipps.h")
+    unset(IPP_INCLUDE_DIR CACHE)
+    unset(IPP_INCLUDE_DIR)
+endif()
+foreach(variable IPP_SIGNAL_LIBRARY IPP_CORE_LIBRARY)
+    if(DEFINED ${variable})
+        if(NOT EXISTS "${${variable}}")
+            unset(${variable} CACHE)
+            unset(${variable})
+        endif()
+    endif()
+endforeach()
+
+find_path(IPP_INCLUDE_DIR NAMES ipps.h
+    HINTS ${IPP_SEARCH_ROOTS}
+    PATH_SUFFIXES include/ipp include REQUIRED)
+find_library(IPP_SIGNAL_LIBRARY NAMES ipps
+    HINTS ${IPP_SEARCH_ROOTS}
+    PATH_SUFFIXES lib lib/intel64 lib/intel64_win REQUIRED)
+find_library(IPP_CORE_LIBRARY NAMES ippcore
+    HINTS ${IPP_SEARCH_ROOTS}
+    PATH_SUFFIXES lib lib/intel64 lib/intel64_win REQUIRED)
+
+message(STATUS "IPP Include: ${IPP_INCLUDE_DIR}")
+message(STATUS "IPP Signal:  ${IPP_SIGNAL_LIBRARY}")
+message(STATUS "IPP Core:    ${IPP_CORE_LIBRARY}")
 set(SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Intel_RTL_analyzer")
 if(WIN32)
     find_library(RTLSDR_LIBRARY NAMES rtlsdr HINTS "${SOURCE_DIR}/lib" REQUIRED)
@@ -69,14 +101,18 @@ if(WIN32)
     file(GLOB RTL_RUNTIME "${SOURCE_DIR}/*.dll")
     foreach(dll IN LISTS RTL_RUNTIME)
         add_custom_command(TARGET Intel_RTL_Analyzer_Next POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different "${dll}" "$<TARGET_FILE_DIR:Intel_RTL_Analyzer_Next>")
+            COMMAND "${CMAKE_COMMAND}" -E copy_if_different "${dll}" "$<TARGET_FILE_DIR:Intel_RTL_Analyzer_Next>"
+            VERBATIM)
     endforeach()
     # CMake-opened Visual Studio projects do not require Qt VS Tools.
     get_target_property(QMAKE_EXECUTABLE Qt6::qmake IMPORTED_LOCATION)
+    if(QMAKE_EXECUTABLE)
     get_filename_component(QT_BIN_DIR "${QMAKE_EXECUTABLE}" DIRECTORY)
     find_program(WINDEPLOYQT windeployqt HINTS "${QT_BIN_DIR}")
     if(WINDEPLOYQT)
         add_custom_command(TARGET Intel_RTL_Analyzer_Next POST_BUILD
-            COMMAND "${WINDEPLOYQT}" --no-translations "$<TARGET_FILE:Intel_RTL_Analyzer_Next>")
+            COMMAND "${WINDEPLOYQT}" --no-translations "$<TARGET_FILE:Intel_RTL_Analyzer_Next>"
+            VERBATIM)
+    endif()
     endif()
 endif()
